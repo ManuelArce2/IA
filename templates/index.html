@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain MRI Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #8d7de6; /* Verde pastel */
+            color: #3a2e4d;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            margin: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #aa148a; /* Verde pastel */
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #c7b085; /* Verde más oscuro */
+        }
+        img {
+            margin-top: 10px;
+            max-width: 100%;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        .image-grid {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .image-item {
+            text-align: center;
+            width: auto;
+        }
+        .image-pair {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            gap: 20px;
+        }
+        .image-container {
+            text-align: center;
+            width: 50%;
+        }
+        .image-container h3 {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+    </style>
+    <script>
+        async function entrenarModelos() {
+            let respuesta = await fetch("/entrenar", { method: "POST" });
+            let data = await respuesta.json();
+
+            document.getElementById("resnet_result").innerText = 
+                `ResNet - Precisión: ${data.resnet_accuracy}, Pérdida: ${data.resnet_loss}`;
+
+            document.getElementById("alexnet_result").innerText = 
+                `AlexNet - Precisión: ${data.alexnet_accuracy}, Pérdida: ${data.alexnet_loss}`;
+        }
+    </script>
+</head>
+<body>
+    <h1>Brain MRI Analysis</h1>
+    <div class="container">
+        <button onclick="window.location.href='/'">Inicio</button>
+        <button onclick="window.location.href='/api1'">Ver Gráfica de Máscaras</button>
+        <button onclick="window.location.href='/api2'">Mostrar Imágenes Aleatorias</button>
+        <button onclick="window.location.href='/api3'">Convertir y Mostrar Imágenes TIFF</button>
+        <button onclick="window.location.href='/api4'">Comparar Modelos</button>
+    </div>
+
+    {% if graph_image_path or mask_image_path or additional_image_path %}
+        <h2>Distribución de Máscaras</h2>
+        <div class="image-grid">
+            {% if graph_image_path %}
+                <div class="image-item">
+                    <img src="{{ graph_image_path }}" alt="Gráfica de distribución">
+                </div>
+            {% endif %}
+            {% if mask_image_path %}
+                <div class="image-item">
+                    <img src="{{ mask_image_path }}" alt="Imagen de máscara">
+                </div>
+            {% endif %}
+            {% if additional_image_path %}
+                <div class="image-item">
+                    <img src="{{ additional_image_path }}" alt="Imagen adicional">
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if brain_images %}
+        <h2>Imágenes Aleatorias con sus Máscaras</h2>
+        {% for img in brain_images %}
+            <div class="image-pair">
+                <div class="image-container">
+                    <h3>Brain MRI</h3>
+                    <img src="{{ img.image_path }}" alt="Brain MRI">
+                </div>
+                <div class="image-container">
+                    <h3>Mask</h3>
+                    <img src="{{ img.mask_path }}" alt="Máscara">
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if converted_images %}
+        <h2>Imágenes Convertidas</h2>
+        <div class="image-grid">
+            {% for img in converted_images %}
+                <div class="image-item">
+                    <img src="{{ img }}" alt="Imagen Convertida">
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if resultados %}
+        <h2>Comparación de ResNet y AlexNet</h2>
+        <pre>{{ resultados }}</pre>
+        <button onclick="entrenarModelos()">Entrenar Modelos</button>
+        <p id="resnet_result">ResNet - Esperando resultados...</p>
+        <p id="alexnet_result">AlexNet - Esperando resultados...</p>
+    {% endif %}
+</body>
+</html>
